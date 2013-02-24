@@ -19,7 +19,7 @@ enum {
 	MUTEX_TYPE_FUTEX_EXT
 };
 
-static int mutex_type = MUTEX_TYPE_PTHREAD;
+static int mutex_type = MUTEX_TYPE_FUTEX_VANILLA;
 
 static pthread_mutex_t pth_mutex = PTHREAD_MUTEX_INITIALIZER;
 static int x_mutex;
@@ -295,8 +295,10 @@ static void *locker(void *args)
 
 	for (i = 0; i < LOOK_ROUNDS; i++) {
 		lock();
-		busy_loop(0.01);
+		fprintf(stderr, "locker in\n");
+		busy_loop(0.1);
 		unlock();
+		busy_loop(0.1);
 		sched_yield();
 	}
 
@@ -316,8 +318,10 @@ static void *unlocker(void *args)
 
 	for (i = 0; i < LOOK_ROUNDS; i++) {
 		lock();
-		busy_loop(0.01);
+		fprintf(stderr, "unlocker in\n");
+		busy_loop(0.1);
 		unlock();
+		busy_loop(0.1);
 		sched_yield();
 	}
 
