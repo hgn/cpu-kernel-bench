@@ -154,11 +154,11 @@ void x_mutex_unlock_ext(void)
 
 void x_mutex_lock(void)
 {
-	int c = 2, ret;
+	int c = 2;
 
 	while (c) {
 		/* Wait in the kernel */
-		ret = sys_futex(&x_mutex, FUTEX_WAIT_PRIVATE, 2, NULL, NULL, 0);
+		sys_futex(&x_mutex, FUTEX_WAIT_PRIVATE, 2, NULL, NULL, 0);
 		c = xchg_32(&x_mutex, 2);
 	}
 
@@ -167,7 +167,7 @@ void x_mutex_lock(void)
 
 void x_mutex_unlock(void)
 {
-	int i, ret;
+	int i;
 
 	/* Unlock, and if not contended then exit. */
 	if (x_mutex == 2)
@@ -186,7 +186,7 @@ void x_mutex_unlock(void)
 	}
 
 	/* We need to wake someone up */
-	ret = sys_futex(&x_mutex, FUTEX_WAKE_PRIVATE, 1, NULL, NULL, 0);
+	sys_futex(&x_mutex, FUTEX_WAKE_PRIVATE, 1, NULL, NULL, 0);
 
 	return;
 }
@@ -201,7 +201,7 @@ static void busy_loop(double mult)
 	}
 }
 
-static void msleep(unsigned long milisec)
+void msleep(unsigned long milisec)
 {
 	struct timespec req;
 
@@ -312,6 +312,8 @@ int main(int ac, char **av)
 {
 	int ret = 0, *num;
 	pthread_t thread_id[2];
+
+	init();
 
 	num = malloc(sizeof(int));
 	if (!num) {
