@@ -5,14 +5,13 @@ import subprocess
 
 modes = [ "linear", "reverse" ]
 
-start  = range(1000, 100000, 2000)
-middle = range(200000, 1000000, 100000)
-end    = range(1000000, 16000000, 1000000)
+start  = [i for i in range(1000, 100000, 2000)]
+middle = [i for i in range(200000, 1000000, 100000)]
+end    = [i for i in range(1000000, 16000000, 1000000)]
 
 working_sizes = start + middle + end
 
 runs = 2
-
 
 def iterations(working_size):
     if working_size < 10:
