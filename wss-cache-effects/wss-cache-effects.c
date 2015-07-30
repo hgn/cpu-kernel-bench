@@ -15,6 +15,7 @@
 #include <inttypes.h>
 #include <getopt.h>
 #include <signal.h>
+#include <assert.h>
 
 
 
@@ -22,10 +23,14 @@ enum {
 	MODE_LINEAR = 1,
 	MODE_REVERSE,
 	MODE_RANDOM,
+
+	MODE_LINEAR_WRITE,
+	MODE_REVERSE_WRITE,
+	MODE_RANDOM_WRITE,
 };
 
-uint32_t *data;
-size_t data_len;
+uint8_t *data;
+size_t working_set_size;
 
 int mode;
 
@@ -42,11 +47,11 @@ static void die(const char *msg)
 static void process_linear(void)
 {
 	int i, j;
-	uint32_t tmp;
+	uint8_t ret;
 
 	for (i = 0; i < iterations; i++) {
-		for (j = 0; j < data_len; j++) {
-			data[j] = tmp;
+		for (j = 0; j < working_set_size; j++) {
+			ret = data[j];
 		}
 	}
 }
@@ -55,11 +60,11 @@ static void process_linear(void)
 static void process_reverse(void)
 {
 	int i, j;
-	uint32_t tmp;
+	uint8_t tmp;
 
 	for (i = 0; i < iterations; i++) {
-		for (j = data_len - 1; j >= 0; j--) {
-			data[j] = tmp;
+		for (j = working_set_size - 1; j >= 0; j--) {
+			tmp = data[j];
 		}
 	}
 }
@@ -68,11 +73,49 @@ static void process_reverse(void)
 static void process_random(void)
 {
 	int i, j;
-	uint32_t tmp;
+	uint8_t tmp;
 
 	for (i = 0; i < iterations; i++) {
-		for (j = 0; j < data_len; j++) {
-			data[rand() % data_len] = tmp;
+		for (j = 0; j < working_set_size; j++) {
+			tmp = data[rand() % working_set_size];
+		}
+	}
+}
+
+static void process_linear_write(void)
+{
+	int i, j;
+	uint8_t tmp = 23;
+
+	for (i = 0; i < iterations; i++) {
+		for (j = 0; j < working_set_size; j++) {
+			data[j] = tmp;
+		}
+	}
+}
+
+
+static void process_reverse_write(void)
+{
+	int i, j;
+	uint8_t tmp = 23;
+
+	for (i = 0; i < iterations; i++) {
+		for (j = working_set_size - 1; j >= 0; j--) {
+			data[j] = tmp;
+		}
+	}
+}
+
+
+static void process_random_write(void)
+{
+	int i, j;
+	uint8_t tmp = 23;
+
+	for (i = 0; i < iterations; i++) {
+		for (j = 0; j < working_set_size; j++) {
+			data[rand() % working_set_size] = tmp;
 		}
 	}
 }
@@ -99,7 +142,7 @@ static void xgetopt(int ac, char **av)
 				iterations = atoi(optarg);
 				break;
 			case 'w':
-				data_len = atoi(optarg);
+				working_set_size = atoi(optarg);
 				break;
 			case 'm':
 				if (!strcasecmp(optarg, "linear")) {
@@ -108,6 +151,13 @@ static void xgetopt(int ac, char **av)
 					mode = MODE_REVERSE;
 				} else if (!strcasecmp(optarg, "random")) {
 					mode = MODE_RANDOM;
+
+				} else if (!strcasecmp(optarg, "linear-write")) {
+					mode = MODE_LINEAR_WRITE;
+				} else if (!strcasecmp(optarg, "reverse-write")) {
+					mode = MODE_REVERSE_WRITE;
+				} else if (!strcasecmp(optarg, "random-write")) {
+					mode = MODE_RANDOM_WRITE;
 				} else {
 					fprintf(stderr, "unknown mode >%s<\n", optarg);
 					exit(1);
@@ -165,7 +215,10 @@ int main(int ac, char **av)
 
 	xgetopt(ac, av);
 
-	data = malloc(data_len * sizeof(uint32_t));
+	/* make sure for random mode we will access all data areas */
+	assert(RAND_MAX >= working_set_size);
+
+	data = malloc(working_set_size);
 	if (!data)
 		die("malloc");
 
@@ -189,6 +242,15 @@ int main(int ac, char **av)
 	case MODE_RANDOM:
 		process_random();
 		break;
+	case MODE_LINEAR_WRITE:
+		process_linear_write();
+		break;
+	case MODE_REVERSE_WRITE:
+		process_reverse_write();
+		break;
+	case MODE_RANDOM_WRITE:
+		process_random_write();
+		break;
 	default: die("unknown mode");
 	}
 
@@ -197,7 +259,7 @@ int main(int ac, char **av)
 	/* calculate diff */
 	subtime(&tv_start, &tv_end, &tv_res);
 
-	double usec = ((double)(tv_res.tv_sec * 1000000 + tv_res.tv_usec)) / (iterations * data_len);
+	double usec = ((double)(tv_res.tv_sec * 1000000 + tv_res.tv_usec)) / (iterations);
 
 
 	fprintf(stdout, "%.4lf nsec\n", usec * 1000.0);
