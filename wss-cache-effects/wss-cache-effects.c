@@ -37,6 +37,23 @@ int mode;
 #define DEFAULT_NO_ITERATIONS 1000
 unsigned int iterations = DEFAULT_NO_ITERATIONS;
 
+static unsigned long x = 123456789, y = 362436069, z = 521288629;
+
+static inline unsigned long fast_rand(void)
+{
+	unsigned long t;
+	x ^= x << 16;
+	x ^= x >> 5;
+	x ^= x << 1;
+
+	t = x;
+	x = y;
+	y = z;
+	z = t ^ x ^ y;
+
+	return z;
+}
+
 
 static void die(const char *msg)
 {
@@ -47,11 +64,10 @@ static void die(const char *msg)
 static void process_linear(void)
 {
 	int i, j;
-	uint8_t ret;
 
 	for (i = 0; i < iterations; i++) {
 		for (j = 0; j < working_set_size; j++) {
-			ret = data[j];
+			(void)data[j];
 		}
 	}
 }
@@ -60,11 +76,10 @@ static void process_linear(void)
 static void process_reverse(void)
 {
 	int i, j;
-	uint8_t tmp;
 
 	for (i = 0; i < iterations; i++) {
 		for (j = working_set_size - 1; j >= 0; j--) {
-			tmp = data[j];
+			(void)data[j];
 		}
 	}
 }
@@ -73,11 +88,10 @@ static void process_reverse(void)
 static void process_random(void)
 {
 	int i, j;
-	uint8_t tmp;
 
 	for (i = 0; i < iterations; i++) {
 		for (j = 0; j < working_set_size; j++) {
-			tmp = data[rand() % working_set_size];
+			(void)data[fast_rand() % working_set_size];
 		}
 	}
 }
@@ -115,7 +129,7 @@ static void process_random_write(void)
 
 	for (i = 0; i < iterations; i++) {
 		for (j = 0; j < working_set_size; j++) {
-			data[rand() % working_set_size] = tmp;
+			data[fast_rand() % working_set_size] = tmp;
 		}
 	}
 }
@@ -259,7 +273,7 @@ int main(int ac, char **av)
 	/* calculate diff */
 	subtime(&tv_start, &tv_end, &tv_res);
 
-	double usec = ((double)(tv_res.tv_sec * 1000000 + tv_res.tv_usec)) / (iterations);
+	double usec = ((double)(tv_res.tv_sec * 1000000 + tv_res.tv_usec)) / (iterations * working_set_size);
 
 
 	fprintf(stdout, "%.4lf nsec\n", usec * 1000.0);

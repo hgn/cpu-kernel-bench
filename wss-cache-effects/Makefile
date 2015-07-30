@@ -7,7 +7,7 @@ png: $(PNG_OBJ)
 
 
 wss-cache-effects: wss-cache-effects.c
-	gcc -g wss-cache-effects.c -o wss-cache-effects
+	gcc -O0 -g wss-cache-effects.c -o wss-cache-effects
 
 data: wss-cache-effects
 	./generator.py

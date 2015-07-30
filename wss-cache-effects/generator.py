@@ -3,7 +3,7 @@
 
 import subprocess
 
-modes = [ "linear", "reverse" ]
+modes = [ "random" ]
 
 start  = [i for i in range(1000, 100000, 2000)]
 middle = [i for i in range(200000, 1000000, 100000)]
