@@ -37,6 +37,9 @@ int mode;
 #define DEFAULT_NO_ITERATIONS 1000
 unsigned int iterations = DEFAULT_NO_ITERATIONS;
 
+#define DEFAULT_NO_ACCESS 1000
+unsigned int access_no = DEFAULT_NO_ACCESS;
+
 static unsigned long x = 123456789, y = 362436069, z = 521288629;
 
 static inline unsigned long fast_rand(void)
@@ -66,7 +69,7 @@ static void process_linear(void)
 	int i, j;
 
 	for (i = 0; i < iterations; i++) {
-		for (j = 0; j < working_set_size; j++) {
+		for (j = 0; j < access_no; j++) {
 			(void)data[j];
 		}
 	}
@@ -78,7 +81,7 @@ static void process_reverse(void)
 	int i, j;
 
 	for (i = 0; i < iterations; i++) {
-		for (j = working_set_size - 1; j >= 0; j--) {
+		for (j = access_no - 1; j >= 0; j--) {
 			(void)data[j];
 		}
 	}
@@ -90,7 +93,7 @@ static void process_random(void)
 	int i, j;
 
 	for (i = 0; i < iterations; i++) {
-		for (j = 0; j < working_set_size; j++) {
+		for (j = 0; j < access_no; j++) {
 			(void)data[fast_rand() % working_set_size];
 		}
 	}
@@ -102,7 +105,7 @@ static void process_linear_write(void)
 	uint8_t tmp = 23;
 
 	for (i = 0; i < iterations; i++) {
-		for (j = 0; j < working_set_size; j++) {
+		for (j = 0; j < access_no; j++) {
 			data[j] = tmp;
 		}
 	}
@@ -115,7 +118,7 @@ static void process_reverse_write(void)
 	uint8_t tmp = 23;
 
 	for (i = 0; i < iterations; i++) {
-		for (j = working_set_size - 1; j >= 0; j--) {
+		for (j = access_no - 1; j >= 0; j--) {
 			data[j] = tmp;
 		}
 	}
@@ -128,7 +131,7 @@ static void process_random_write(void)
 	uint8_t tmp = 23;
 
 	for (i = 0; i < iterations; i++) {
-		for (j = 0; j < working_set_size; j++) {
+		for (j = 0; j < access_no; j++) {
 			data[fast_rand() % working_set_size] = tmp;
 		}
 	}
@@ -144,6 +147,7 @@ static void xgetopt(int ac, char **av)
 			{"iteration",    1, 0, 'i'},
 			{"mode",         1, 0, 'm'},
 			{"working-size", 1, 0, 'w'},
+			{"access",       1, 0, 'a'},
 			{0, 0, 0, 0}
 		};
 
@@ -152,6 +156,9 @@ static void xgetopt(int ac, char **av)
 			break;
 
 		switch (c) {
+			case 'a':
+				access_no = atoi(optarg);
+				break;
 			case 'i':
 				iterations = atoi(optarg);
 				break;
@@ -273,7 +280,7 @@ int main(int ac, char **av)
 	/* calculate diff */
 	subtime(&tv_start, &tv_end, &tv_res);
 
-	double usec = ((double)(tv_res.tv_sec * 1000000 + tv_res.tv_usec)) / (iterations * working_set_size);
+	double usec = ((double)(tv_res.tv_sec * 1000000 + tv_res.tv_usec)) / (iterations * access_no);
 
 
 	fprintf(stdout, "%.4lf nsec\n", usec * 1000.0);

@@ -19,7 +19,7 @@ enum {
 	MUTEX_TYPE_FUTEX_EXT
 };
 
-static int mutex_type = MUTEX_TYPE_FUTEX_VANILLA;
+static int mutex_type = MUTEX_TYPE_PTHREAD;
 
 static pthread_mutex_t pth_mutex = PTHREAD_MUTEX_INITIALIZER;
 static int x_mutex;
