@@ -49,7 +49,7 @@ itera = 1
 for mode in modes:
     f = open(mode + ".data", 'w')
     for working_size in working_sizes:
-        cmd = "./wss-cache-effects --mode %s --iteration %d --working-size %d" % (mode, iterations(working_size), working_size)
+        cmd = "./wss-cache-effects --mode %s --iteration %d --access 10000 --working-size %d" % (mode, iterations(working_size), working_size)
         res = []
         for r in range(runs):
             print("%s" % (cmd))

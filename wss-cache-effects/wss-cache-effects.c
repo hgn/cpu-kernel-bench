@@ -67,10 +67,13 @@ static void die(const char *msg)
 static void process_linear(void)
 {
 	int i, j;
+	uint8_t tmp;
+
+	assert(access_no < working_set_size);
 
 	for (i = 0; i < iterations; i++) {
 		for (j = 0; j < access_no; j++) {
-			(void)data[j];
+			tmp = data[j];
 		}
 	}
 }
@@ -79,10 +82,13 @@ static void process_linear(void)
 static void process_reverse(void)
 {
 	int i, j;
+	uint8_t tmp;
+
+	assert(access_no < working_set_size);
 
 	for (i = 0; i < iterations; i++) {
 		for (j = access_no - 1; j >= 0; j--) {
-			(void)data[j];
+			tmp = data[j];
 		}
 	}
 }
@@ -91,10 +97,11 @@ static void process_reverse(void)
 static void process_random(void)
 {
 	int i, j;
+	uint8_t tmp;
 
 	for (i = 0; i < iterations; i++) {
 		for (j = 0; j < access_no; j++) {
-			(void)data[fast_rand() % working_set_size];
+			tmp = data[fast_rand() % working_set_size];
 		}
 	}
 }
@@ -103,6 +110,8 @@ static void process_linear_write(void)
 {
 	int i, j;
 	uint8_t tmp = 23;
+
+	assert(access_no < working_set_size);
 
 	for (i = 0; i < iterations; i++) {
 		for (j = 0; j < access_no; j++) {
@@ -116,6 +125,8 @@ static void process_reverse_write(void)
 {
 	int i, j;
 	uint8_t tmp = 23;
+
+	assert(access_no < working_set_size);
 
 	for (i = 0; i < iterations; i++) {
 		for (j = access_no - 1; j >= 0; j--) {
